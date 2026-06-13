@@ -1,0 +1,14 @@
+{
+    "login": "ログイン",
+    "register": "登録",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "logout": "ログアウト",
+    "admin": "管理",
+    "send": "送信",
+    "type_message": "メッセージを入力...",
+    "load_older": "以前のメッセージを読み込む",
+    "online": "オンライン",
+    "permission_denied": "アクセス権限がありません",
+    "user_not_found": "ユーザーが見つかりません"
+}

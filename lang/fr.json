@@ -1,0 +1,14 @@
+{
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "logout": "déconnexion",
+    "admin": "admin",
+    "send": "Envoyer",
+    "type_message": "Tapez un message...",
+    "load_older": "Charger les messages plus anciens",
+    "online": "En ligne",
+    "permission_denied": "Permission refusée",
+    "user_not_found": "Utilisateur non trouvé"
+}

@@ -5,6 +5,8 @@ Modernized PHP Chat is designed to be a lightweight yet powerful real-time commu
 ## Core Chat Experience
 
 - **Real-time Polling**: Messages appear instantly as they are sent, utilizing efficient SQLite/MariaDB/Postgres backends.
+- **Global Support (i18n)**: Interface translated into English, Spanish, French, Russian, Mandarin Chinese, Japanese, Korean, and Arabic.
+- **RTL Support**: Automatic right-to-left layout for languages like Arabic.
 - **Rich Text Support**:
   - `*text*` -> **Bold** (Rank 4+)
   - `_text_` -> *Italic* (Rank 2+)
@@ -46,3 +48,4 @@ Administrators have access to a dedicated panel to manage the entire instance:
 - **Session Management**: Secure, HttpOnly, and SameSite cookies.
 - **IP Protection**: IP address data is collected for moderation but stripped from API responses to regular users.
 - **Rate Limiting**: Cooldowns on commands and message frequency based on rank and role.
+- **Security Policies**: Password strength enforcement and login attempt throttling to prevent brute-force attacks.

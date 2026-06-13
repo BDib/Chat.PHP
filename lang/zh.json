@@ -1,0 +1,14 @@
+{
+    "login": "登录",
+    "register": "注册",
+    "username": "用户名",
+    "password": "密码",
+    "logout": "退出登录",
+    "admin": "管理员",
+    "send": "发送",
+    "type_message": "输入消息...",
+    "load_older": "加载更早的消息",
+    "online": "在线",
+    "permission_denied": "权限被拒绝",
+    "user_not_found": "用户未找到"
+}

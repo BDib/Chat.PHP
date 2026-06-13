@@ -6,6 +6,7 @@ class Translator
 {
     private static array $messages = [];
     private static string $currentLang = 'en';
+    private static array $rtlLangs = ['ar', 'he', 'fa'];
 
     public static function load(?string $lang = null): void
     {
@@ -31,5 +32,15 @@ class Translator
         }
 
         return $message;
+    }
+
+    public static function getLang(): string
+    {
+        return self::$currentLang;
+    }
+
+    public static function isRtl(): bool
+    {
+        return in_array(self::$currentLang, self::$rtlLangs, true);
     }
 }

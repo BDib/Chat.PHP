@@ -992,3 +992,29 @@
       display: none;
     }
   }
+
+/* RTL Adjustments */
+[dir="rtl"] .sidebar {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+[dir="rtl"] .message-author {
+  margin-right: 0;
+  margin-left: 4px;
+}
+
+[dir="rtl"] .message-actions {
+  right: auto;
+  left: 16px;
+}
+
+[dir="rtl"] .reply-quote {
+  border-left: none;
+  border-right: 2px solid var(--accent);
+}
+
+[dir="rtl"] .reply-preview-author {
+  margin-right: 0;
+  margin-left: 4px;
+}

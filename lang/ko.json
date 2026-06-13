@@ -1,0 +1,14 @@
+{
+    "login": "로그인",
+    "register": "회원가입",
+    "username": "사용자 이름",
+    "password": "비밀번호",
+    "logout": "로그아웃",
+    "admin": "관리자",
+    "send": "전송",
+    "type_message": "메시지 입력...",
+    "load_older": "이전 메시지 불러오기",
+    "online": "온라인",
+    "permission_denied": "권한이 없습니다",
+    "user_not_found": "사용자를 찾을 수 없습니다"
+}

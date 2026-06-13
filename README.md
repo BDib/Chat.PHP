@@ -1,6 +1,6 @@
 # Modernized PHP Chat
 
-A real-time chat application modernized and refactored from a monolithic script into a clean, PSR-4 compliant architecture with multi-database support and an admin dashboard.
+A real-time chat application modernized and refactored from a monolithic script into a clean, PSR-4 compliant architecture with multi-database support, global translations, and an admin dashboard.
 
 ## Quick Start (Zero-Config)
 
@@ -14,24 +14,35 @@ The application defaults to **SQLite**, allowing you to start chatting immediate
     ```bash
     php -S localhost:8000 -t public
     ```
-3.  **Chat**: Open `http://localhost:8000`. The first registered user automatically becomes the **Admin**.
+3.  **Chat**: Open `http://localhost:8000`. The first user to register will automatically become the **Admin**.
 
 ## Key Features
 
 - **Modern PSR-4 Architecture**: Clean, maintainable code using PHP 8.3 features.
 - **Multi-Database Support**: Out-of-the-box support for SQLite, MySQL/MariaDB, and PostgreSQL.
+- **Global & RTL Support**: Translated into 8 languages, including full Right-to-Left (RTL) layout support.
 - **Admin Dashboard**: Web-based interface for user moderation and word filtering.
 - **Dynamic Ranks**: 0-9 rank system with various feature unlocks.
-- **Rich Interaction**: Replies, GIF uploads, dice rolling, and animated text effects.
+- **Containerized**: Docker and Docker Compose support for instant deployment.
+
+## Languages Supported
+- English (en)
+- Spanish (es)
+- French (fr)
+- Russian (ru)
+- Mandarin Chinese (zh)
+- Japanese (ja)
+- Korean (ko)
+- Arabic (ar - RTL)
 
 ## Extensive Documentation
 
 We've provided detailed guides for every aspect of the application:
 
-- [**Application Features & UX**](docs/features.md) - Deep dive into the user experience and rank system.
+- [**Application Features & UX**](docs/features.md) - Deep dive into the user experience, rank system, and RTL support.
 - [**Usage & Tutorial**](docs/usage.md) - Step-by-step guide for users and administrators.
-- [**Deployment Guide**](docs/deployment.md) - How to host in production (Nginx, MySQL, etc.).
-- [**Development & Extension**](docs/development.md) - Architecture overview and how to add new features.
+- [**Deployment Guide**](docs/deployment.md) - How to host in production (Nginx, MySQL, Docker).
+- [**Development & Extension**](docs/development.md) - Architecture overview and how to add new features or translations.
 
 ## Requirements
 
