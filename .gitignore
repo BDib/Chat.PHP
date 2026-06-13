@@ -1,0 +1,6 @@
+/vendor/
+/db/*.db
+/db/*.db-shm
+/db/*.db-wal
+php_server.log
+verification/
