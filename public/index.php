@@ -9,8 +9,13 @@ use App\Auth\Authenticator;
 use App\Controller\ApiController;
 use App\Controller\ViewController;
 use App\Controller\AdminController;
+use App\Controller\ProfileController;
+use App\Translator;
+use App\Migrations\MigrationManager;
 
 Config::load();
+Translator::load();
+MigrationManager::migrate();
 
 $db = Database::get();
 $sessionManager = new SessionManager($db);
@@ -40,14 +45,16 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// Admin router
-if (isset($_GET['admin'])) {
-    if (!$currentUser) {
-        header('Location: ./');
+// Router
+if ($currentUser) {
+    if (isset($_GET['admin'])) {
+        (new AdminController($currentUser, $csrfToken))->handle($_GET['admin']);
         exit;
     }
-    (new AdminController($currentUser, $csrfToken))->handle($_GET['admin']);
-    exit;
+    if (isset($_GET['profile'])) {
+        (new ProfileController($currentUser, $csrfToken))->handle($_GET['profile']);
+        exit;
+    }
 }
 
 // API router
@@ -87,13 +94,13 @@ if ($authenticator->isIpBanned($ip)) {
             $authError = $error;
         } else {
             // Re-fetch user to login
-            $user = $authenticator->login($_POST['username'], $_POST['password'], date(Config::DATE_FORMAT));
+            $user = $authenticator->login($_POST['username'], $_POST['password'], date(Config::DATE_FORMAT), $ip);
             $sessionManager->regenerate($session['token'], $user['id']);
             header('Location: ./');
             exit;
         }
     } elseif ($action === 'login') {
-        $result = $authenticator->login($_POST['username'], $_POST['password'], date(Config::DATE_FORMAT));
+        $result = $authenticator->login($_POST['username'], $_POST['password'], date(Config::DATE_FORMAT), $ip);
         if (is_string($result)) {
             $authError = $result;
         } else {

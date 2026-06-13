@@ -23,6 +23,17 @@ class Authenticator
         return (bool)$stmt->fetch();
     }
 
+    public function validatePasswordStrength(string $password): ?string
+    {
+        if (strlen($password) < 8) {
+            return 'Password must be at least 8 characters long.';
+        }
+        if (!preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+            return 'Password must contain uppercase, lowercase letters and numbers.';
+        }
+        return null;
+    }
+
     public function register(string $username, string $password, string $ip): ?string
     {
         $username = strtolower(trim($username));
@@ -32,6 +43,10 @@ class Authenticator
 
         if (!WordFilter::isPronounceable($username)) {
             return 'Username must be a pronounceable word (no gibberish).';
+        }
+
+        if ($error = $this->validatePasswordStrength($password)) {
+            return $error;
         }
 
         $existing = $this->db->prepare('SELECT id FROM users WHERE username = ?');
@@ -63,14 +78,30 @@ class Authenticator
         return null; // Success
     }
 
-    public function login(string $username, string $password, string $now): array|string
+    public function login(string $username, string $password, string $now, string $ip): array|string
     {
+        // Check login attempts
+        $stmt = $this->db->prepare('SELECT attempts, last_attempt FROM login_attempts WHERE ip = ?');
+        $stmt->execute([$ip]);
+        $attempt = $stmt->fetch();
+
+        if ($attempt && $attempt['attempts'] >= 5) {
+            $last = new \DateTime($attempt['last_attempt']);
+            $diff = (new \DateTime())->getTimestamp() - $last->getTimestamp();
+            if ($diff < 300) { // 5 minute lockout
+                return 'Too many login attempts. Please try again in 5 minutes.';
+            }
+            // Reset attempts after lockout
+            $this->db->prepare('DELETE FROM login_attempts WHERE ip = ?')->execute([$ip]);
+        }
+
         $username = strtolower(trim($username));
         $stmt = $this->db->prepare('SELECT id, password_hash, kicked_until, banned FROM users WHERE username = ?');
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
+            $this->recordLoginAttempt($ip);
             return 'Invalid username or password.';
         }
 
@@ -82,7 +113,18 @@ class Authenticator
             return "You are kicked until {$user['kicked_until']}.";
         }
 
+        // Success - clear attempts
+        $this->db->prepare('DELETE FROM login_attempts WHERE ip = ?')->execute([$ip]);
+
         return $user;
+    }
+
+    private function recordLoginAttempt(string $ip): void
+    {
+        $now = date(Config::DATE_FORMAT);
+        $this->db->prepare('INSERT INTO login_attempts (ip, attempts, last_attempt) VALUES (?, 1, ?)
+            ON CONFLICT(ip) DO UPDATE SET attempts = attempts + 1, last_attempt = ?')
+            ->execute([$ip, $now, $now]);
     }
 
     public function getUserById(int $id): ?object

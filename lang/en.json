@@ -1,0 +1,14 @@
+{
+    "login": "Login",
+    "register": "Register",
+    "username": "Username",
+    "password": "Password",
+    "logout": "logout",
+    "admin": "admin",
+    "send": "Send",
+    "type_message": "Type a message...",
+    "load_older": "Load older messages",
+    "online": "Online",
+    "permission_denied": "Permission denied",
+    "user_not_found": "User not found"
+}

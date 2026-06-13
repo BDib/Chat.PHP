@@ -1,1 +1,1 @@
-{"version":2,"defects":[],"times":{"App\\Tests\\WordFilterTest::testIsPronounceable":0.001,"App\\Tests\\WordFilterTest::testIsAllowedWord":0.004}}
+{"version":2,"defects":[],"times":{"App\\Tests\\WordFilterTest::testIsPronounceable":0.001,"App\\Tests\\WordFilterTest::testIsAllowedWord":0.005}}

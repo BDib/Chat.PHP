@@ -1,7 +1,6 @@
-<!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        Online
+        <?= __('online') ?>
         <button class="close-sidebar" onclick="toggleSidebar()">
             <svg class="icon">
                 <use href="#icon-x"/>
@@ -12,7 +11,6 @@
 </aside>
 <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-<!-- Main chat -->
 <main class="main">
     <div class="chat-header">
         <button class="open-sidebar" onclick="toggleSidebar()">
@@ -27,15 +25,16 @@
                 <use href="#icon-sun"/>
             </svg>
         </button>
+        <a href="?profile" style="font-size: 13px; margin-right: 10px; color: var(--text-muted);">settings</a>
         <?php if ($currentUser->role === 'admin'): ?>
-            <a href="?admin" style="font-size: 13px; margin-right: 10px; color: var(--accent);">admin</a>
+            <a href="?admin" style="font-size: 13px; margin-right: 10px; color: var(--accent);"><?= __('admin') ?></a>
         <?php endif; ?>
         <span style="font-size:13px;font-weight:400;color:var(--text-muted)"><?= htmlspecialchars($currentUser->username) ?></span>
-        <a href="?logout" style="font-size:13px">logout</a>
+        <a href="?logout" style="font-size:13px"><?= __('logout') ?></a>
     </div>
 
     <div class="messages" id="messages">
-        <button class="load-more" id="load-more">Load older messages</button>
+        <button class="load-more" id="load-more"><?= __('load_older') ?></button>
     </div>
     <div class="new-messages-badge" id="new-messages-badge"></div>
 
@@ -49,7 +48,7 @@
     </div>
     <form class="chat-form" id="chat-form">
         <input type="file" id="file-input" accept="image/gif" style="display:none">
-        <input type="text" name="message" placeholder="Type a message..." autocomplete="off"
+        <input type="text" name="message" placeholder="<?= __('type_message') ?>" autocomplete="off"
                maxlength="<?= $currentUser->rank === 0 ? 70 : 2000 ?>">
         <button type="button" class="chat-upload"
                 onclick="document.getElementById('file-input').click()"<?php if ($currentUser->rank < 8): ?> style="display:none"<?php endif; ?>>
@@ -57,7 +56,7 @@
                 <use href="#icon-image"/>
             </svg>
         </button>
-        <button type="submit">Send</button>
+        <button type="submit"><?= __('send') ?></button>
     </form>
 </main>
 
