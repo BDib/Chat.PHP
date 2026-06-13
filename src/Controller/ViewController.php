@@ -17,7 +17,7 @@ class ViewController
         $this->render('auth', [
             'authError' => $authError,
             'csrfToken' => $csrfToken,
-            'title' => Config::TITLE,
+            'title' => Config::get('APP_TITLE', 'Chat'),
             'view' => 'auth'
         ]);
     }
@@ -27,7 +27,7 @@ class ViewController
         $this->render('chat', [
             'currentUser' => $currentUser,
             'csrfToken' => $csrfToken,
-            'title' => Config::TITLE,
+            'title' => Config::get('APP_TITLE', 'Chat'),
             'view' => 'chat'
         ]);
     }

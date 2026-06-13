@@ -4,3 +4,4 @@
 /db/*.db-wal
 php_server.log
 verification/
+.env

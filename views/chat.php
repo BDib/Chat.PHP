@@ -27,6 +27,9 @@
                 <use href="#icon-sun"/>
             </svg>
         </button>
+        <?php if ($currentUser->role === 'admin'): ?>
+            <a href="?admin" style="font-size: 13px; margin-right: 10px; color: var(--accent);">admin</a>
+        <?php endif; ?>
         <span style="font-size:13px;font-weight:400;color:var(--text-muted)"><?= htmlspecialchars($currentUser->username) ?></span>
         <a href="?logout" style="font-size:13px">logout</a>
     </div>

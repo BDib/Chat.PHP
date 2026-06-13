@@ -3,113 +3,173 @@
 namespace App;
 
 use PDO;
+use Exception;
 
 class Database
 {
     private static ?PDO $db = null;
     private static ?PDO $filesDb = null;
 
-    private const string SCHEMA = <<<SQL
-    PRAGMA journal_mode = WAL;
-    PRAGMA busy_timeout = 5000;
-    PRAGMA synchronous = NORMAL;
-    PRAGMA cache_size = -64000;
-    PRAGMA foreign_keys = true;
-    PRAGMA temp_store = memory;
+    private static function getSchema(string $driver): string
+    {
+        $isSqlite = $driver === 'sqlite';
+        $isPgsql = $driver === 'pgsql';
+        $isMysql = $driver === 'mysql';
 
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        password_hash TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        last_seen TEXT NOT NULL,
-        last_ip TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'user',
-        kicked_until TEXT,
-        muted_until TEXT,
-        banned INTEGER NOT NULL DEFAULT 0,
-        rank INTEGER NOT NULL DEFAULT 0,
-        color TEXT DEFAULT NULL,
-        status TEXT DEFAULT NULL
-    );
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name ON users(username);
-    CREATE INDEX IF NOT EXISTS idx_users_last_seen ON users(last_seen);
+        $pk = 'PRIMARY KEY';
+        $text = $isSqlite ? 'TEXT' : 'VARCHAR(255)';
+        $longText = $isSqlite ? 'TEXT' : ($isPgsql ? 'TEXT' : 'LONGTEXT');
+        $blob = $isSqlite ? 'BLOB' : ($isPgsql ? 'BYTEA' : 'LONGBLOB');
 
-    CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        message TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        ip TEXT NOT NULL,
-        kind TEXT NOT NULL DEFAULT 'text',
-        reply_to INTEGER,
-        color TEXT DEFAULT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
-    CREATE INDEX IF NOT EXISTS idx_messages_username ON messages(username);
+        $autoInc = '';
+        if ($isSqlite) $autoInc = 'AUTOINCREMENT';
+        elseif ($isMysql) $autoInc = 'AUTO_INCREMENT';
 
-    CREATE TABLE IF NOT EXISTS ip_bans (
-        ip TEXT PRIMARY KEY,
-        username TEXT NOT NULL,
-        banned_by TEXT NOT NULL,
-        created_at TEXT NOT NULL
-    );
+        $idType = 'INTEGER';
+        if ($isPgsql) {
+            $idType = 'SERIAL';
+        }
 
-    CREATE TABLE IF NOT EXISTS shadow_bans (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        ip TEXT NOT NULL,
-        banned_by TEXT NOT NULL,
-        created_at TEXT NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_shadow_bans_username ON shadow_bans(username);
-    CREATE INDEX IF NOT EXISTS idx_shadow_bans_ip ON shadow_bans(ip);
+        $schema = "";
+        if ($isSqlite) {
+            $schema .= "PRAGMA journal_mode = WAL;
+                        PRAGMA busy_timeout = 5000;
+                        PRAGMA synchronous = NORMAL;
+                        PRAGMA cache_size = -64000;
+                        PRAGMA foreign_keys = true;
+                        PRAGMA temp_store = memory;";
+        }
 
-    CREATE TABLE IF NOT EXISTS cooldowns (
-        user_id INTEGER NOT NULL,
-        action TEXT NOT NULL,
-        used_at TEXT NOT NULL,
-        PRIMARY KEY (user_id, action)
-    );
+        $schema .= "
+        CREATE TABLE IF NOT EXISTS users (
+            id $idType $pk $autoInc,
+            username $text NOT NULL,
+            password_hash $text NOT NULL,
+            created_at $text NOT NULL,
+            last_seen $text NOT NULL,
+            last_ip $text NOT NULL,
+            role $text NOT NULL DEFAULT 'user',
+            kicked_until $text,
+            muted_until $text,
+            banned INTEGER NOT NULL DEFAULT 0,
+            rank INTEGER NOT NULL DEFAULT 0,
+            color $text DEFAULT NULL,
+            status $text DEFAULT NULL
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name ON users(username);
+        CREATE INDEX IF NOT EXISTS idx_users_last_seen ON users(last_seen);
 
-    CREATE TABLE IF NOT EXISTS sessions (
-        token TEXT PRIMARY KEY,
-        user_id INTEGER,
-        csrf_token TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        expires_at TEXT NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
-    SQL;
+        CREATE TABLE IF NOT EXISTS messages (
+            id $idType $pk $autoInc,
+            username $text NOT NULL,
+            message $longText NOT NULL,
+            created_at $text NOT NULL,
+            ip $text NOT NULL,
+            kind $text NOT NULL DEFAULT 'text',
+            reply_to INTEGER,
+            color $text DEFAULT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
+        CREATE INDEX IF NOT EXISTS idx_messages_username ON messages(username);
 
-    private const string FILES_SCHEMA = <<<SQL
-    PRAGMA journal_mode = WAL;
-    PRAGMA busy_timeout = 5000;
-    PRAGMA synchronous = NORMAL;
+        CREATE TABLE IF NOT EXISTS ip_bans (
+            ip $text $pk,
+            username $text NOT NULL,
+            banned_by $text NOT NULL,
+            created_at $text NOT NULL
+        );
 
-    CREATE TABLE IF NOT EXISTS files (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hash TEXT NOT NULL,
-        data BLOB NOT NULL,
-        mime TEXT NOT NULL,
-        size INTEGER NOT NULL,
-        username TEXT NOT NULL,
-        created_at TEXT NOT NULL
-    );
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_files_hash ON files(hash);
-    SQL;
+        CREATE TABLE IF NOT EXISTS shadow_bans (
+            id $idType $pk $autoInc,
+            username $text NOT NULL,
+            ip $text NOT NULL,
+            banned_by $text NOT NULL,
+            created_at $text NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_shadow_bans_username ON shadow_bans(username);
+        CREATE INDEX IF NOT EXISTS idx_shadow_bans_ip ON shadow_bans(ip);
+
+        CREATE TABLE IF NOT EXISTS cooldowns (
+            user_id INTEGER NOT NULL,
+            action $text NOT NULL,
+            used_at $text NOT NULL,
+            PRIMARY KEY (user_id, action)
+        );
+
+        CREATE TABLE IF NOT EXISTS sessions (
+            token $text $pk,
+            user_id INTEGER,
+            csrf_token $text NOT NULL,
+            created_at $text NOT NULL,
+            expires_at $text NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+        ";
+
+        return $schema;
+    }
+
+    private static function getFilesSchema(string $driver): string
+    {
+        $isSqlite = $driver === 'sqlite';
+        $isPgsql = $driver === 'pgsql';
+        $isMysql = $driver === 'mysql';
+
+        $pk = 'PRIMARY KEY';
+        $text = $isSqlite ? 'TEXT' : 'VARCHAR(255)';
+        $blob = $isSqlite ? 'BLOB' : ($isPgsql ? 'BYTEA' : 'LONGBLOB');
+
+        $autoInc = '';
+        if ($isSqlite) $autoInc = 'AUTOINCREMENT';
+        elseif ($isMysql) $autoInc = 'AUTO_INCREMENT';
+
+        $idType = 'INTEGER';
+        if ($isPgsql) {
+            $idType = 'SERIAL';
+        }
+
+        $schema = "";
+        if ($isSqlite) {
+            $schema .= "PRAGMA journal_mode = WAL;
+                        PRAGMA busy_timeout = 5000;
+                        PRAGMA synchronous = NORMAL;";
+        }
+
+        $schema .= "
+        CREATE TABLE IF NOT EXISTS files (
+            id $idType $pk $autoInc,
+            hash $text NOT NULL,
+            data $blob NOT NULL,
+            mime $text NOT NULL,
+            size INTEGER NOT NULL,
+            username $text NOT NULL,
+            created_at $text NOT NULL
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_files_hash ON files(hash);
+        ";
+        return $schema;
+    }
 
     public static function get(): PDO
     {
         if (self::$db === null) {
-            $dir = dirname(Config::DB_PATH);
-            if (!is_dir($dir)) {
-                mkdir($dir, 0777, true);
-            }
-            self::$db = new PDO('sqlite:' . Config::DB_PATH);
+            $driver = Config::get('DB_DRIVER', 'sqlite');
+            $dsn = self::getDSN($driver, 'DB_PATH', 'DB_NAME');
+
+            self::$db = new PDO($dsn, Config::get('DB_USER'), Config::get('DB_PASS'));
             self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            self::$db->exec(self::SCHEMA);
+
+            $schema = self::getSchema($driver);
+            if ($driver === 'sqlite') {
+                self::$db->exec($schema);
+            } else {
+                // Split queries for drivers that don't support multi-query in exec
+                foreach (explode(';', $schema) as $query) {
+                    $query = trim($query);
+                    if ($query) self::$db->exec($query);
+                }
+            }
         }
         return self::$db;
     }
@@ -117,15 +177,48 @@ class Database
     public static function getFiles(): PDO
     {
         if (self::$filesDb === null) {
-            $dir = dirname(Config::FILES_DB_PATH);
-            if (!is_dir($dir)) {
-                mkdir($dir, 0777, true);
-            }
-            self::$filesDb = new PDO('sqlite:' . Config::FILES_DB_PATH);
+            $driver = Config::get('DB_DRIVER', 'sqlite');
+            $dsn = self::getDSN($driver, 'FILES_DB_PATH', 'FILES_DB_NAME');
+
+            self::$filesDb = new PDO($dsn, Config::get('DB_USER'), Config::get('DB_PASS'));
             self::$filesDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$filesDb->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            self::$filesDb->exec(self::FILES_SCHEMA);
+
+            $schema = self::getFilesSchema($driver);
+            if ($driver === 'sqlite') {
+                self::$filesDb->exec($schema);
+            } else {
+                foreach (explode(';', $schema) as $query) {
+                    $query = trim($query);
+                    if ($query) self::$filesDb->exec($query);
+                }
+            }
         }
         return self::$filesDb;
+    }
+
+    private static function getDSN(string $driver, string $pathKey, string $nameKey): string
+    {
+        return match ($driver) {
+            'sqlite' => (function() use ($pathKey) {
+                $path = Config::dbPath($pathKey);
+                $dir = dirname($path);
+                if (!is_dir($dir)) mkdir($dir, 0777, true);
+                return 'sqlite:' . $path;
+            })(),
+            'mysql' => sprintf(
+                "mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4",
+                Config::get('DB_HOST', 'localhost'),
+                Config::get('DB_PORT', '3306'),
+                Config::get($nameKey, Config::get('DB_NAME', 'chat'))
+            ),
+            'pgsql' => sprintf(
+                "pgsql:host=%s;port=%s;dbname=%s",
+                Config::get('DB_HOST', 'localhost'),
+                Config::get('DB_PORT', '5432'),
+                Config::get($nameKey, Config::get('DB_NAME', 'chat'))
+            ),
+            default => throw new Exception("Unsupported DB driver: $driver"),
+        };
     }
 }

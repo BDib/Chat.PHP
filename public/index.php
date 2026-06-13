@@ -2,11 +2,15 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use App\Config;
 use App\Database;
 use App\Auth\SessionManager;
 use App\Auth\Authenticator;
 use App\Controller\ApiController;
 use App\Controller\ViewController;
+use App\Controller\AdminController;
+
+Config::load();
 
 $db = Database::get();
 $sessionManager = new SessionManager($db);
@@ -33,6 +37,16 @@ $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 if (isset($_GET['logout'])) {
     $sessionManager->delete($session['token']);
     header('Location: ./');
+    exit;
+}
+
+// Admin router
+if (isset($_GET['admin'])) {
+    if (!$currentUser) {
+        header('Location: ./');
+        exit;
+    }
+    (new AdminController($currentUser, $csrfToken))->handle($_GET['admin']);
     exit;
 }
 
@@ -73,13 +87,13 @@ if ($authenticator->isIpBanned($ip)) {
             $authError = $error;
         } else {
             // Re-fetch user to login
-            $user = $authenticator->login($_POST['username'], $_POST['password'], date(\App\Config::DATE_FORMAT));
+            $user = $authenticator->login($_POST['username'], $_POST['password'], date(Config::DATE_FORMAT));
             $sessionManager->regenerate($session['token'], $user['id']);
             header('Location: ./');
             exit;
         }
     } elseif ($action === 'login') {
-        $result = $authenticator->login($_POST['username'], $_POST['password'], date(\App\Config::DATE_FORMAT));
+        $result = $authenticator->login($_POST['username'], $_POST['password'], date(Config::DATE_FORMAT));
         if (is_string($result)) {
             $authError = $result;
         } else {
