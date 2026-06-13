@@ -1,0 +1,14 @@
+{
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "logout": "Abmelden",
+    "admin": "Admin",
+    "send": "Senden",
+    "type_message": "Nachricht eingeben...",
+    "load_older": "Ältere Nachrichten laden",
+    "online": "Online",
+    "permission_denied": "Zugriff verweigert",
+    "user_not_found": "Benutzer nicht gefunden"
+}
