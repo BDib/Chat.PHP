@@ -19,12 +19,17 @@ class Config
     public static function get(string $key, mixed $default = null): mixed
     {
         self::load();
-        return $_ENV[$key] ?? $default;
+        // Check environment variables first, then $_ENV, then default
+        return $_ENV[$key] ?? (getenv($key) ?: $default);
     }
 
     public static function dbPath(string $key = 'DB_PATH'): string
     {
         $path = self::get($key);
+        if (!$path) {
+            $path = ($key === 'DB_PATH') ? 'db/chat.db' : 'db/files.db';
+        }
+
         if (str_starts_with($path, '/')) return $path;
         return __DIR__ . '/../' . $path;
     }
